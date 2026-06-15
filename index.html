@@ -1,376 +1,49 @@
-<!DOCTYPE html>
-<html lang="es">
-
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>Monitoreo Inteligente de Naranjas</title>
-
-<style>
-
-body{
-    font-family: Arial, sans-serif;
-    background:#f4f4f4;
-    margin:0;
-    padding:20px;
-}
-
-.container{
-    max-width:900px;
-    margin:auto;
-    background:white;
-    padding:20px;
-    border-radius:15px;
-    box-shadow:0 0 15px rgba(0,0,0,.2);
-}
-
-h1{
-    text-align:center;
-    color:#ff6b00;
-}
-
-button{
-    width:100%;
-    padding:15px;
-    font-size:18px;
-    border:none;
-    border-radius:10px;
-    background:#ff6b00;
-    color:white;
-    cursor:pointer;
-}
-
-button:hover{
-    opacity:.9;
-}
-
-.card{
-    margin-top:15px;
-    padding:15px;
-    border-radius:10px;
-    border:1px solid #ddd;
-    background:#fafafa;
-}
-
-.valor{
-    font-size:28px;
-    font-weight:bold;
-}
-
-.estado{
-    text-align:center;
-    font-size:24px;
-    font-weight:bold;
-    margin-top:15px;
-    padding:15px;
-    border-radius:10px;
-}
-
-.verde{
-    background:#d4edda;
-    color:#155724;
-}
-
-.azul{
-    background:#dbeafe;
-    color:#1e40af;
-}
-
-.rojo{
-    background:#fee2e2;
-    color:#991b1b;
-}
-
-table{
-    width:100%;
-    border-collapse:collapse;
-}
-
-th,td{
-    border:1px solid #ccc;
-    padding:8px;
-    text-align:center;
-}
-
-th{
-    background:#ff6b00;
-    color:white;
-}
-
-</style>
-
-</head>
-
-<body>
-
-<div class="container">
-
-<h1>🍊 Monitoreo Inteligente de Naranjas</h1>
-
-<button onclick="conectarBLE()">
-Conectar ESP32
-</button>
-
-<div class="card">
-
-<h3>Información del Lote</h3>
-
-<p><b>Lote:</b> LT-001</p>
-
-<p><b>Variedad:</b> Valencia</p>
-
-<p><b>Fecha de cosecha:</b> 15/06/2026</p>
-
-<p><b>Fecha de transporte:</b> 16/06/2026</p>
-
-<p><b>Días almacenado:</b> 3</p>
-
-</div>
-
-<div class="card">
-
-<p>🌡️ Temperatura Fruta</p>
-
-<div class="valor">
-<span id="fruta">--</span> °C
-</div>
-
-<hr>
-
-<p>🌡️ Temperatura Ambiente</p>
-
-<div class="valor">
-<span id="ambiente">--</span> °C
-</div>
-
-<hr>
-
-<p>📊 Temperatura Promedio</p>
-
-<div class="valor">
-<span id="promedio">--</span> °C
-</div>
-
-</div>
-
-<div id="estado" class="estado">
-SIN DATOS
-</div>
-
-<div class="card">
-
-<p><b>Última actualización:</b></p>
-
-<div id="fecha">
---
-</div>
-
-</div>
-
-<div class="card">
-
-<h3>Historial de Lecturas</h3>
-
-<table>
-
-<thead>
-<tr>
-<th>Hora</th>
-<th>Fruta (°C)</th>
-<th>Ambiente (°C)</th>
-</tr>
-</thead>
-
-<tbody id="historial">
-</tbody>
-
-</table>
-
-</div>
-
-</div>
-
 <script>
-
-const SERVICE_UUID =
-"12345678-1234-1234-1234-123456789abc";
-
-const CHARACTERISTIC_UUID =
-"abcdefab-1234-5678-1234-56789abcdef0";
-
-let historial = [];
 
 async function conectarBLE(){
 
-try{
+    if (!navigator.bluetooth) {
 
-const device =
-await navigator.bluetooth.requestDevice({
+        alert(
+        "Este navegador NO soporta Web Bluetooth.\n\n" +
+        "Usa Google Chrome o Microsoft Edge en Android o Windows."
+        );
 
-filters:[
-{
-name:"ESP32_NARANJAS"
-}
-],
+        return;
+    }
 
-optionalServices:[
-SERVICE_UUID
-]
+    try {
 
-});
+        const device =
+        await navigator.bluetooth.requestDevice({
 
-const server =
-await device.gatt.connect();
+            filters: [
+                {
+                    name: "ESP32_NARANJAS"
+                }
+            ],
 
-const service =
-await server.getPrimaryService(
-SERVICE_UUID
-);
+            optionalServices: [
+                "12345678-1234-1234-1234-123456789abc"
+            ]
 
-const characteristic =
-await service.getCharacteristic(
-CHARACTERISTIC_UUID
-);
+        });
 
-await characteristic.startNotifications();
+        alert(
+        "Dispositivo encontrado: " +
+        device.name
+        );
 
-characteristic.addEventListener(
-'characteristicvaluechanged',
-actualizarDatos
-);
+    }
+    catch(error){
 
-alert("ESP32 conectado correctamente");
+        alert(
+        "Error BLE:\n" +
+        error
+        );
 
-}
-catch(error){
-
-alert("Error: " + error);
-
-}
-
-}
-
-function actualizarDatos(event){
-
-const valor =
-new TextDecoder().decode(
-event.target.value
-);
-
-const datos =
-valor.split(",");
-
-if(datos.length < 4)
-return;
-
-let fruta =
-parseFloat(datos[0]);
-
-let ambiente =
-parseFloat(datos[1]);
-
-let promedio =
-parseFloat(datos[2]);
-
-let estado =
-datos[3];
-
-document.getElementById(
-"fruta"
-).innerHTML =
-fruta.toFixed(1);
-
-document.getElementById(
-"ambiente"
-).innerHTML =
-ambiente.toFixed(1);
-
-document.getElementById(
-"promedio"
-).innerHTML =
-promedio.toFixed(1);
-
-const ahora =
-new Date();
-
-document.getElementById(
-"fecha"
-).innerHTML =
-ahora.toLocaleString();
-
-let caja =
-document.getElementById(
-"estado"
-);
-
-caja.innerHTML =
-estado;
-
-caja.className =
-"estado";
-
-if(estado.includes("IDEAL")){
-
-caja.classList.add(
-"verde"
-);
-
-}
-else if(estado.includes("BAJA")){
-
-caja.classList.add(
-"azul"
-);
-
-}
-else{
-
-caja.classList.add(
-"rojo"
-);
-
-}
-
-historial.unshift({
-
-hora:
-ahora.toLocaleTimeString(),
-
-fruta:
-fruta.toFixed(1),
-
-ambiente:
-ambiente.toFixed(1)
-
-});
-
-if(historial.length > 10)
-historial.pop();
-
-let tabla = "";
-
-historial.forEach(r=>{
-
-tabla += `
-<tr>
-<td>${r.hora}</td>
-<td>${r.fruta}</td>
-<td>${r.ambiente}</td>
-</tr>
-`;
-
-});
-
-document.getElementById(
-"historial"
-).innerHTML =
-tabla;
+    }
 
 }
 
 </script>
-
-</body>
-</html>
-```
