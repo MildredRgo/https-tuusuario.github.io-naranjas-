@@ -1,102 +1,102 @@
+```html
 <!DOCTYPE html>
 <html lang="es">
 
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <title>Monitoreo Inteligente de Naranjas</title>
 
 <style>
 
 body{
-font-family:Arial,sans-serif;
-background:#f4f4f4;
-margin:0;
-padding:20px;
+    font-family: Arial, sans-serif;
+    background:#f4f4f4;
+    margin:0;
+    padding:20px;
 }
 
 .container{
-max-width:800px;
-margin:auto;
-background:white;
-padding:25px;
-border-radius:15px;
-box-shadow:0px 0px 15px rgba(0,0,0,.2);
+    max-width:900px;
+    margin:auto;
+    background:white;
+    padding:20px;
+    border-radius:15px;
+    box-shadow:0 0 15px rgba(0,0,0,.2);
 }
 
 h1{
-text-align:center;
-color:#ff7b00;
-}
-
-.card{
-margin-top:15px;
-padding:15px;
-border-radius:10px;
-background:#fafafa;
-border:1px solid #ddd;
-}
-
-.valor{
-font-size:24px;
-font-weight:bold;
-}
-
-.estado{
-font-size:26px;
-font-weight:bold;
-text-align:center;
-padding:15px;
-border-radius:10px;
-margin-top:15px;
-}
-
-.verde{
-background:#d4edda;
-color:#155724;
-}
-
-.azul{
-background:#dbeafe;
-color:#1e40af;
-}
-
-.rojo{
-background:#fee2e2;
-color:#991b1b;
-}
-
-table{
-width:100%;
-border-collapse:collapse;
-margin-top:15px;
-}
-
-th,td{
-border:1px solid #ccc;
-padding:8px;
-text-align:center;
-}
-
-th{
-background:#ff7b00;
-color:white;
+    text-align:center;
+    color:#ff6b00;
 }
 
 button{
-width:100%;
-padding:12px;
-font-size:18px;
-background:#ff7b00;
-color:white;
-border:none;
-border-radius:10px;
-cursor:pointer;
+    width:100%;
+    padding:15px;
+    font-size:18px;
+    border:none;
+    border-radius:10px;
+    background:#ff6b00;
+    color:white;
+    cursor:pointer;
 }
 
 button:hover{
-opacity:0.9;
+    opacity:.9;
+}
+
+.card{
+    margin-top:15px;
+    padding:15px;
+    border-radius:10px;
+    border:1px solid #ddd;
+    background:#fafafa;
+}
+
+.valor{
+    font-size:28px;
+    font-weight:bold;
+}
+
+.estado{
+    text-align:center;
+    font-size:24px;
+    font-weight:bold;
+    margin-top:15px;
+    padding:15px;
+    border-radius:10px;
+}
+
+.verde{
+    background:#d4edda;
+    color:#155724;
+}
+
+.azul{
+    background:#dbeafe;
+    color:#1e40af;
+}
+
+.rojo{
+    background:#fee2e2;
+    color:#991b1b;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+th,td{
+    border:1px solid #ccc;
+    padding:8px;
+    text-align:center;
+}
+
+th{
+    background:#ff6b00;
+    color:white;
 }
 
 </style>
@@ -114,6 +114,7 @@ Conectar ESP32
 </button>
 
 <div class="card">
+
 <h3>Información del Lote</h3>
 
 <p><b>Lote:</b> LT-001</p>
@@ -124,37 +125,37 @@ Conectar ESP32
 
 <p><b>Fecha de transporte:</b> 16/06/2026</p>
 
-<p><b>Días almacenados:</b>
-<span id="dias">3</span>
-</p>
+<p><b>Días almacenado:</b> 3</p>
 
 </div>
 
 <div class="card">
 
-<p>🌡️ Temperatura fruta</p>
+<p>🌡️ Temperatura Fruta</p>
+
 <div class="valor">
 <span id="fruta">--</span> °C
 </div>
 
 <hr>
 
-<p>🌡️ Temperatura ambiente</p>
+<p>🌡️ Temperatura Ambiente</p>
+
 <div class="valor">
 <span id="ambiente">--</span> °C
 </div>
 
 <hr>
 
-<p>📊 Temperatura promedio</p>
+<p>📊 Temperatura Promedio</p>
+
 <div class="valor">
 <span id="promedio">--</span> °C
 </div>
 
 </div>
 
-<div id="estado"
-class="estado">
+<div id="estado" class="estado">
 SIN DATOS
 </div>
 
@@ -170,22 +171,19 @@ SIN DATOS
 
 <div class="card">
 
-<h3>Historial</h3>
+<h3>Historial de Lecturas</h3>
 
 <table>
 
 <thead>
-
 <tr>
 <th>Hora</th>
-<th>Fruta</th>
-<th>Ambiente</th>
+<th>Fruta (°C)</th>
+<th>Ambiente (°C)</th>
 </tr>
-
 </thead>
 
 <tbody id="historial">
-
 </tbody>
 
 </table>
@@ -204,10 +202,9 @@ const CHARACTERISTIC_UUID =
 
 let historial = [];
 
-let suma = 0;
-let muestras = 0;
-
 async function conectarBLE(){
+
+try{
 
 const device =
 await navigator.bluetooth.requestDevice({
@@ -244,6 +241,15 @@ characteristic.addEventListener(
 actualizarDatos
 );
 
+alert("ESP32 conectado correctamente");
+
+}
+catch(error){
+
+alert("Error: " + error);
+
+}
+
 }
 
 function actualizarDatos(event){
@@ -256,32 +262,35 @@ event.target.value
 const datos =
 valor.split(",");
 
+if(datos.length < 4)
+return;
+
 let fruta =
 parseFloat(datos[0]);
 
 let ambiente =
 parseFloat(datos[1]);
 
+let promedio =
+parseFloat(datos[2]);
+
 let estado =
-datos[2];
+datos[3];
 
 document.getElementById(
 "fruta"
-).innerHTML = fruta;
+).innerHTML =
+fruta.toFixed(1);
 
 document.getElementById(
 "ambiente"
-).innerHTML = ambiente;
-
-suma += fruta;
-muestras++;
-
-let promedio =
-(suma/muestras).toFixed(2);
+).innerHTML =
+ambiente.toFixed(1);
 
 document.getElementById(
 "promedio"
-).innerHTML = promedio;
+).innerHTML =
+promedio.toFixed(1);
 
 const ahora =
 new Date();
@@ -296,19 +305,33 @@ document.getElementById(
 "estado"
 );
 
-caja.innerHTML = estado;
+caja.innerHTML =
+estado;
 
 caja.className =
 "estado";
 
-if(estado.includes("IDEAL"))
-caja.classList.add("verde");
+if(estado.includes("IDEAL")){
 
-else if(estado.includes("BAJA"))
-caja.classList.add("azul");
+caja.classList.add(
+"verde"
+);
 
-else
-caja.classList.add("rojo");
+}
+else if(estado.includes("BAJA")){
+
+caja.classList.add(
+"azul"
+);
+
+}
+else{
+
+caja.classList.add(
+"rojo"
+);
+
+}
 
 historial.unshift({
 
@@ -316,10 +339,10 @@ hora:
 ahora.toLocaleTimeString(),
 
 fruta:
-fruta,
+fruta.toFixed(1),
 
 ambiente:
-ambiente
+ambiente.toFixed(1)
 
 });
 
@@ -351,3 +374,4 @@ tabla;
 
 </body>
 </html>
+```
