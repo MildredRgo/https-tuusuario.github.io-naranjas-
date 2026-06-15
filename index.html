@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
+<title>Naranjas Inteligentes</title>
+
+<style>
+
+body{
+font-family:Arial;
+text-align:center;
+margin-top:40px;
+}
+
+.card{
+width:350px;
+margin:auto;
+padding:20px;
+border:1px solid #ccc;
+border-radius:10px;
+}
+
+h1{
+color:#ff6600;
+}
+
+.estado{
+font-size:22px;
+font-weight:bold;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="card">
+
+<h1>Monitoreo de Naranjas</h1>
+
+<button onclick="conectarBLE()">
+Conectar ESP32
+</button>
+
+<h2>
+Temperatura fruta:
+<span id="fruta">--</span> °C
+</h2>
+
+<h2>
+Temperatura ambiente:
+<span id="ambiente">--</span> °C
+</h2>
+
+<div class="estado" id="estado">
+SIN DATOS
+</div>
+
+</div>
+
+<script>
+
+const SERVICE_UUID =
+"12345678-1234-1234-1234-123456789abc";
+
+const CHARACTERISTIC_UUID =
+"abcdefab-1234-5678-1234-56789abcdef0";
+
+async function conectarBLE(){
+
+try{
+
+const device =
+await navigator.bluetooth.requestDevice({
+
+filters:[
+{
+name:"ESP32_NARANJAS"
+}
+],
+
+optionalServices:[
+SERVICE_UUID
+]
+
+});
+
+const server =
+await device.gatt.connect();
+
+const service =
+await server.getPrimaryService(
+SERVICE_UUID
+);
+
+const characteristic =
+await service.getCharacteristic(
+CHARACTERISTIC_UUID
+);
+
+await characteristic.startNotifications();
+
+characteristic.addEventListener(
+'characteristicvaluechanged',
+(event)=>{
+
+const valor =
+new TextDecoder().decode(
+event.target.value
+);
+
+const datos =
+valor.split(",");
+
+document.getElementById(
+"fruta"
+).innerText = datos[0];
+
+document.getElementById(
+"ambiente"
+).innerText = datos[1];
+
+document.getElementById(
+"estado"
+).innerText = datos[2];
+
+});
+
+}
+catch(error){
+
+alert(error);
+
+}
+
+}
+
+</script>
+
+</body>
+</html>
