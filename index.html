@@ -1,49 +1,15 @@
-<script>
+<!DOCTYPE html>
+<html>
+<head>
+<title>Prueba</title>
+</head>
+<body>
 
-async function conectarBLE(){
+<h1>Hola Mundo</h1>
 
-    if (!navigator.bluetooth) {
+<button onclick="alert('Funciona')">
+Probar
+</button>
 
-        alert(
-        "Este navegador NO soporta Web Bluetooth.\n\n" +
-        "Usa Google Chrome o Microsoft Edge en Android o Windows."
-        );
-
-        return;
-    }
-
-    try {
-
-        const device =
-        await navigator.bluetooth.requestDevice({
-
-            filters: [
-                {
-                    name: "ESP32_NARANJAS"
-                }
-            ],
-
-            optionalServices: [
-                "12345678-1234-1234-1234-123456789abc"
-            ]
-
-        });
-
-        alert(
-        "Dispositivo encontrado: " +
-        device.name
-        );
-
-    }
-    catch(error){
-
-        alert(
-        "Error BLE:\n" +
-        error
-        );
-
-    }
-
-}
-
-</script>
+</body>
+</html>
