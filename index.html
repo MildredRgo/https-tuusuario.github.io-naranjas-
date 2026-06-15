@@ -5,31 +5,98 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 
-<title>Naranjas Inteligentes</title>
+<title>Monitoreo Inteligente de Naranjas</title>
 
 <style>
 
 body{
-font-family:Arial;
-text-align:center;
-margin-top:40px;
+font-family:Arial,sans-serif;
+background:#f4f4f4;
+margin:0;
+padding:20px;
 }
 
-.card{
-width:350px;
+.container{
+max-width:800px;
 margin:auto;
-padding:20px;
-border:1px solid #ccc;
-border-radius:10px;
+background:white;
+padding:25px;
+border-radius:15px;
+box-shadow:0px 0px 15px rgba(0,0,0,.2);
 }
 
 h1{
-color:#ff6600;
+text-align:center;
+color:#ff7b00;
+}
+
+.card{
+margin-top:15px;
+padding:15px;
+border-radius:10px;
+background:#fafafa;
+border:1px solid #ddd;
+}
+
+.valor{
+font-size:24px;
+font-weight:bold;
 }
 
 .estado{
-font-size:22px;
+font-size:26px;
 font-weight:bold;
+text-align:center;
+padding:15px;
+border-radius:10px;
+margin-top:15px;
+}
+
+.verde{
+background:#d4edda;
+color:#155724;
+}
+
+.azul{
+background:#dbeafe;
+color:#1e40af;
+}
+
+.rojo{
+background:#fee2e2;
+color:#991b1b;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+margin-top:15px;
+}
+
+th,td{
+border:1px solid #ccc;
+padding:8px;
+text-align:center;
+}
+
+th{
+background:#ff7b00;
+color:white;
+}
+
+button{
+width:100%;
+padding:12px;
+font-size:18px;
+background:#ff7b00;
+color:white;
+border:none;
+border-radius:10px;
+cursor:pointer;
+}
+
+button:hover{
+opacity:0.9;
 }
 
 </style>
@@ -38,26 +105,91 @@ font-weight:bold;
 
 <body>
 
-<div class="card">
+<div class="container">
 
-<h1>Monitoreo de Naranjas</h1>
+<h1>🍊 Monitoreo Inteligente de Naranjas</h1>
 
 <button onclick="conectarBLE()">
 Conectar ESP32
 </button>
 
-<h2>
-Temperatura fruta:
+<div class="card">
+<h3>Información del Lote</h3>
+
+<p><b>Lote:</b> LT-001</p>
+
+<p><b>Variedad:</b> Valencia</p>
+
+<p><b>Fecha de cosecha:</b> 15/06/2026</p>
+
+<p><b>Fecha de transporte:</b> 16/06/2026</p>
+
+<p><b>Días almacenados:</b>
+<span id="dias">3</span>
+</p>
+
+</div>
+
+<div class="card">
+
+<p>🌡️ Temperatura fruta</p>
+<div class="valor">
 <span id="fruta">--</span> °C
-</h2>
+</div>
 
-<h2>
-Temperatura ambiente:
+<hr>
+
+<p>🌡️ Temperatura ambiente</p>
+<div class="valor">
 <span id="ambiente">--</span> °C
-</h2>
+</div>
 
-<div class="estado" id="estado">
+<hr>
+
+<p>📊 Temperatura promedio</p>
+<div class="valor">
+<span id="promedio">--</span> °C
+</div>
+
+</div>
+
+<div id="estado"
+class="estado">
 SIN DATOS
+</div>
+
+<div class="card">
+
+<p><b>Última actualización:</b></p>
+
+<div id="fecha">
+--
+</div>
+
+</div>
+
+<div class="card">
+
+<h3>Historial</h3>
+
+<table>
+
+<thead>
+
+<tr>
+<th>Hora</th>
+<th>Fruta</th>
+<th>Ambiente</th>
+</tr>
+
+</thead>
+
+<tbody id="historial">
+
+</tbody>
+
+</table>
+
 </div>
 
 </div>
@@ -70,9 +202,12 @@ const SERVICE_UUID =
 const CHARACTERISTIC_UUID =
 "abcdefab-1234-5678-1234-56789abcdef0";
 
-async function conectarBLE(){
+let historial = [];
 
-try{
+let suma = 0;
+let muestras = 0;
+
+async function conectarBLE(){
 
 const device =
 await navigator.bluetooth.requestDevice({
@@ -106,7 +241,12 @@ await characteristic.startNotifications();
 
 characteristic.addEventListener(
 'characteristicvaluechanged',
-(event)=>{
+actualizarDatos
+);
+
+}
+
+function actualizarDatos(event){
 
 const valor =
 new TextDecoder().decode(
@@ -116,26 +256,94 @@ event.target.value
 const datos =
 valor.split(",");
 
+let fruta =
+parseFloat(datos[0]);
+
+let ambiente =
+parseFloat(datos[1]);
+
+let estado =
+datos[2];
+
 document.getElementById(
 "fruta"
-).innerText = datos[0];
+).innerHTML = fruta;
 
 document.getElementById(
 "ambiente"
-).innerText = datos[1];
+).innerHTML = ambiente;
+
+suma += fruta;
+muestras++;
+
+let promedio =
+(suma/muestras).toFixed(2);
 
 document.getElementById(
+"promedio"
+).innerHTML = promedio;
+
+const ahora =
+new Date();
+
+document.getElementById(
+"fecha"
+).innerHTML =
+ahora.toLocaleString();
+
+let caja =
+document.getElementById(
 "estado"
-).innerText = datos[2];
+);
+
+caja.innerHTML = estado;
+
+caja.className =
+"estado";
+
+if(estado.includes("IDEAL"))
+caja.classList.add("verde");
+
+else if(estado.includes("BAJA"))
+caja.classList.add("azul");
+
+else
+caja.classList.add("rojo");
+
+historial.unshift({
+
+hora:
+ahora.toLocaleTimeString(),
+
+fruta:
+fruta,
+
+ambiente:
+ambiente
 
 });
 
-}
-catch(error){
+if(historial.length > 10)
+historial.pop();
 
-alert(error);
+let tabla = "";
 
-}
+historial.forEach(r=>{
+
+tabla += `
+<tr>
+<td>${r.hora}</td>
+<td>${r.fruta}</td>
+<td>${r.ambiente}</td>
+</tr>
+`;
+
+});
+
+document.getElementById(
+"historial"
+).innerHTML =
+tabla;
 
 }
 
